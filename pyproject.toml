@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "grassdet"
+version = "0.1.0"
+description = "Detection, tracking and activity recognition (incl. crawling) of people hidden in dense vegetation video"
+readme = "README.md"
+license = { text = "AGPL-3.0-only" }
+requires-python = ">=3.10"
+keywords = ["person-detection", "multi-object-tracking", "yolo", "search-and-rescue", "occlusion", "computer-vision"]
+# torch/torchvision are installed separately from the CUDA wheel index (see README).
+dependencies = [
+    "ultralytics>=8.4",
+    "sahi",
+    "supervision",
+    "av",
+    "opencv-python",
+    "albumentations",
+    "lap",
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "pyyaml",
+    "tqdm",
+    "motmetrics",
+    "huggingface_hub",
+]
+
+[project.optional-dependencies]
+tools = ["fiftyone", "mlflow", "onnx", "onnxslim", "pytest"]
+
+[project.urls]
+Repository = "https://github.com/angelopchery/forestpersondetection"
+
+[tool.setuptools.packages.find]
+where = ["src"]

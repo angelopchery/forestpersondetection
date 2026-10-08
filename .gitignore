@@ -1,0 +1,29 @@
+# environment
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+.vscode/
+.idea/
+
+# data, weights and run artefacts (large or licence-restricted; see docs/DATASETS.md)
+data/
+checks/
+outputs/
+runs/
+logs/
+mlruns/
+dist/
+weights/
+models/*.pt
+models/*.engine
+models/*.onnx
+
+# media (sample frames used by the docs live in docs/assets/ and are kept)
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+*.log

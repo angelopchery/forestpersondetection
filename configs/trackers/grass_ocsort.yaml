@@ -1,0 +1,12 @@
+# OC-SORT alternative: better re-association after long occlusions, no camera-motion compensation.
+# Compare against grass_botsort.yaml with: --set tracker.config=configs/trackers/grass_ocsort.yaml
+tracker_type: ocsort
+track_high_thresh: 0.4
+track_low_thresh: 0.05
+new_track_thresh: 0.6
+track_buffer_seconds: 4.0
+match_thresh: 0.8
+fuse_score: true
+delta_t: 3
+inertia: 0.2
+use_byte: true              # keep ByteTrack's low-confidence second pass (people half-hidden by grass)

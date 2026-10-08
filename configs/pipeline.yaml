@@ -1,0 +1,48 @@
+# Default inference pipeline config. Override per run with --config.
+
+model:
+  weights: models/grass_v1.pt  # YOLO26s fine-tuned 2026-10-08 on ForestPersons + HIT-UAV + UAV + VisDrone (research-only:
+                               # non-commercial data). models/yolo26s.pt = the COCO baseline it replaced.
+  imgsz: 1280                  # full-frame inference size (long side)
+  conf: 0.05                   # keep low: the tracker's second association pass uses low-score boxes
+  iou: 0.6
+  classes: [0]                 # COCO "person"; a fine-tuned single-class model is also class 0
+  device: 0                    # GPU index, or "cpu"
+  half: true
+
+inference:
+  mode: auto                   # auto | full | sliced
+  sliced_above_px: 2200        # auto -> sliced when the frame's long side exceeds this
+  probe_frames: 8              # auto, smaller frames: test both modes on this many sampled frames (0 = off)
+  small_person_px: 48          # probe picks sliced when the median person is shorter than this
+  slice_size: 640
+  slice_overlap: 0.2
+  slice_batch: 8               # tiles per forward pass; lowered automatically on GPU OOM
+  include_full_frame: true     # also run one full-frame pass in sliced mode (catches large people)
+  merge_ios: 0.5               # merge boxes whose intersection-over-smaller exceeds this
+
+video:
+  normalize: auto              # auto: re-encode (CFR H.264, rotation applied; needs ffmpeg) only if the clip
+                               # is VFR, rotated, an unusual codec or above max_fps; true: always; false: never
+  max_fps: 30                  # downsample higher frame rates; crawlers are slow
+
+tracker:
+  config: configs/trackers/grass_botsort.yaml
+
+postprocess:
+  min_track_seconds: 1.0       # drop shorter tracks (grass false positives flicker)
+  min_mean_conf: 0.25          # drop tracks whose mean detection confidence is below this
+  max_interp_gap_seconds: 4.0  # fill gaps up to this long by linear interpolation
+
+output:
+  render_video: true
+  qc_sample_every: 15          # frames between image-statistics samples for the QC report
+
+behavior:
+  enabled: true                # posture + activity (crawling / prone_still / crouching / walking / standing)
+  pose_weights: models/yolo11s-pose.pt
+  pose_imgsz: 320              # pose runs on per-person crops, so a small input size is enough
+  pose_samples_per_second: 5   # pose is sampled, then filled and smoothed across frames
+  crop_padding: 0.15
+  smooth_seconds: 1.0          # majority vote window for posture; also the speed measurement window
+  moving_body_lengths_per_s: 0.1  # slower than this = still (crawlers are slow: keep this low)

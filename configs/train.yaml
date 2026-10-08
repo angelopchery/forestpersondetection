@@ -1,0 +1,30 @@
+# Fine-tuning recipe for a single-class "person" detector in vegetation.
+# Any Ultralytics train argument can go under `ultralytics:`; `extra_augmentations` scales the
+# grass/camera augmentations in src/grassdet/augment.py (0 = off).
+
+model: models/yolo26s.pt         # YOLO26 (Jan 2026): NMS-free, small-object-focused loss; COCO person = class 0
+                                 # laptop (4 GB): --set imgsz=640 batch=8, or model=models/yolo26n.pt
+extra_augmentations: 1.0
+
+ultralytics:
+  epochs: 100
+  patience: 20
+  imgsz: 960                     # small people need resolution (needs a >=12 GB GPU for batch 16)
+  batch: -1                      # auto-fit to GPU memory (4 GB laptop: expect ~4-6 at 960)
+  single_cls: true
+  cos_lr: true
+  close_mosaic: 10
+  cache: false                   # "disk" speeds up epochs if there is free space
+  workers: 4
+  # geometry: crawling/lying people appear rotated and at any scale
+  degrees: 10.0
+  scale: 0.7
+  translate: 0.1
+  fliplr: 0.5
+  flipud: 0.0                    # set 0.5 for top-down (drone) footage only
+  mosaic: 1.0
+  mixup: 0.1
+  cutmix: 0.1                    # pasted patches act as extra occluders
+  hsv_h: 0.02                    # small hue shifts: grass colour varies by season
+  hsv_s: 0.6
+  hsv_v: 0.4

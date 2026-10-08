@@ -1,0 +1,97 @@
+# Training data manifest: what to download, from where, how much, and under which licence.
+# `python scripts/fetch_datasets.py --only <name ...>` downloads into data/external/<name>/ and converts to
+# data/datasets/<name>/ (single class "person", per-sequence splits, licence recorded).
+#
+# Licences (as stated on each source, 2026-10-06; re-check before shipping weights):
+#   commercial_use: false  -> trains only with `train.py --allow-noncommercial`; weights are research/demo only.
+# Disk: raw sizes below are for the subsets selected here; delete data/external/<name> after conversion.
+
+datasets:
+  # Core: people standing / sitting / LYING, partly hidden in forest & vegetation, seen from 1.5-2 m.
+  # Visibility (20/40/70/100 %) and pose labels. Gated: accept the terms on the HF page, then `hf auth login`.
+  forestpersons:
+    source: hf
+    repo: etri/ForestPersons
+    allow_patterns: ["annotations.zip", "*.csv", "LICENSE", "images/*/*[05]0.jpg"]   # every 50th frame, ~2.2k img, ~1.2 GB (*00.jpg: every 100th, ~1.1k img, ~0.6 GB; *0.jpg: every 10th, ~9.7k img, ~4.8 GB)
+    licence: CC BY-NC-SA 4.0 (+ no weapons / mass-surveillance use)
+    commercial_use: false
+    # Official train/val/test kept, so test scores are comparable with the ForestPersons paper.
+    prepare: [--format, coco, --ann-glob, "**/*.json", "--group-regex=-\\d+$", --max-side, "1280", --keep-splits]
+
+  # Same scenes in thermal (FLIR Boson): night / thermal-camera robustness.
+  forestpersons_ir:
+    source: hf
+    repo: etri/ForestPersonsIR
+    allow_patterns: ["annotations.zip", "LICENSE", "images/*/*0.jpg"]  # every 10th frame, ~1.6k img, ~0.2 GB (thermal kept smaller than RGB)
+    licence: CC BY-NC-SA 4.0
+    commercial_use: false
+    prepare: [--format, coco, --ann-glob, "**/*.json", "--group-regex=-\\d+$", --keep-splits]
+
+  # Thermal drone footage, people in fields/roads (Roboflow export of HIT-UAV), YOLO format.
+  hit_uav:
+    source: hf
+    repo: Kiuyha/hit-uav-thermal-human-detection
+    allow_patterns: null                                                    # whole set, ~2.9k img, 0.5 GB
+    licence: CC BY 4.0 (HIT-UAV; HF card says MIT)
+    commercial_use: true
+    prepare: [--format, yolo, --names-from-yaml, data.yaml, --keep-splits]
+
+  # Low-altitude drone RGB, single class person, YOLO format (5 batches).
+  uav_lowalt:
+    source: hf
+    repo: Mikiee/Person_Detection_and_Re-Identification_from_Low_Altitude_UAV-based_platform
+    allow_patterns: ["Detection/*"]                                        # ~1-1.5k img, 0.4 GB
+    licence: CC BY 4.0
+    commercial_use: true
+    prepare: [--format, yolo, --names-from-yaml, data.yaml, --all-split, train]  # only 5 recordings: too few to split
+
+  # Small/distant people from drones (pedestrian + people classes only), tiled so they stay visible.
+  visdrone:
+    source: hf_parquet
+    repo: shijli/visdrone2019-det
+    allow_patterns: ["detection/train-*", "detection/validation-*"]         # 7k img, ~1.7 GB
+    person_categories: [1, 2]                                              # VisDrone: 1 pedestrian, 2 people (0 = ignored region)
+    licence: CC BY-NC-SA 3.0
+    commercial_use: false
+    prepare: [--format, yolo, --names, person, --keep-splits, --tile, "960", --fraction, "0.5"]
+
+  # ---- Roboflow Universe (needs a free account + ROBOFLOW_API_KEY). Pages could not be verified
+  # automatically (Cloudflare): open each link logged in, confirm version/licence/source, then set
+  # `version` and remove `disabled`. Never pull HERIDAL/SARD re-uploads in addition to the originals,
+  # and always run scripts/dedupe_datasets.py after fetching.
+  rf_search_rescue:            # crawling / lying / partially visible person classes (likely contains SARD/HERIDAL)
+    source: roboflow
+    workspace: trash-32e51
+    project: search-rescue
+    version: 13
+    licence: check on page
+    commercial_use: true
+    disabled: true
+    prepare: [--format, yolo, --names-from-yaml, data.yaml, --tile, "1024"]
+  rf_camouflaged_soldier:      # people camouflaged in foliage, ground view
+    source: roboflow
+    workspace: setup-3abfo
+    project: camouflaged-soldier
+    version: 1
+    licence: CC BY 4.0 (per search snippet)
+    commercial_use: true
+    disabled: true
+    prepare: [--format, yolo, --names-from-yaml, data.yaml]
+  rf_cod10k_humans:            # camouflaged humans (COD10K human subset as boxes); COD10K itself is non-commercial
+    source: roboflow
+    workspace: ml-lab-rkg6w
+    project: cod10k-bb-humans
+    version: 1
+    licence: CC BY 4.0 on Universe, but derived from COD10K (non-commercial)
+    commercial_use: false
+    disabled: true
+    prepare: [--format, yolo, --names-from-yaml, data.yaml]
+  rf_human_in_forests:         # people under forest cover from above
+    source: roboflow
+    workspace: fatemehnmt
+    project: human-in-forests-detection
+    version: 1
+    licence: CC BY 4.0 (per search snippet)
+    commercial_use: true
+    disabled: true
+    prepare: [--format, yolo, --names-from-yaml, data.yaml]

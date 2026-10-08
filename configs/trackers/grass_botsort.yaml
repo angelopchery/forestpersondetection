@@ -1,0 +1,15 @@
+# BoT-SORT tuned for slow, frequently occluded people in vegetation.
+# Principle: hard to start a track, easy to keep one.
+tracker_type: botsort
+track_high_thresh: 0.4      # first association pass
+track_low_thresh: 0.05      # second pass rescues low-confidence people behind grass
+new_track_thresh: 0.6       # confidence needed to start a new track
+track_buffer_seconds: 4.0   # how long a lost track is kept alive (converted to frames per clip fps)
+match_thresh: 0.8
+fuse_score: true
+gmc_method: sparseOptFlow   # camera-motion compensation; cheaper than ecc on CPU
+proximity_thresh: 0.5
+appearance_thresh: 0.25
+with_reid: false            # appearance is mostly grass texture; ReID hurts more than it helps
+model: auto
+gmc_max_side: 960             # camera-motion estimation resolution (long side): 1080p -> Ultralytics default x2, 4K -> x4

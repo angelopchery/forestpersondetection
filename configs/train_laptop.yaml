@@ -1,0 +1,44 @@
+# Fine-tuning recipe for the RTX 3050 Laptop GPU (4 GB VRAM, 16 GB RAM).
+# Same augmentations as configs/train.yaml; only the memory/time-related settings differ.
+#
+#   python scripts/train.py --config configs/train_laptop.yaml --data forestpersons hit_uav uav_lowalt visdrone_lite \
+#       --name grass_v1 --allow-noncommercial --resume
+#
+# Why these values:
+#   imgsz 768   - 960 needs batch 2-3 on 4 GB and ~2x the time per epoch; 768 keeps most of the small-person
+#                 detail (a 20 px person at 1280 is still ~12 px here) and fits batch ~6.
+#   batch 6     - measured: batch 8 at 768 uses 3.45 of 4 GB (too close to OOM for a multi-hour run), and
+#                 AutoBatch (-1) wrongly picks 1 on this GPU. Gradients are accumulated to nbs=64 anyway.
+#   epochs 40   - with patience 10 the run usually stops itself around epoch 25-35.
+#   cache false - RAM cache for ~5k images at 768 px would need ~5 GB of the 16 GB; disk cache needs ~3 GB
+#                 of the ~20 GB free. Set cache: disk if epochs are I/O-bound (GPU utilisation < 60 %).
+#   workers 1   - Windows dataloader workers are separate processes holding their own mosaic buffers (~1.5 GB
+#                 each). With 2 workers the 16 GB laptop ran out of RAM next to the editor/browser and the run
+#                 was killed at epoch 2. 1 worker costs ~10-20 % epoch time; use 0 if it happens again.
+
+model: models/yolo26s.pt
+extra_augmentations: 1.0
+
+ultralytics:
+  epochs: 40
+  patience: 10
+  imgsz: 768
+  batch: 6
+  single_cls: true
+  cos_lr: true
+  close_mosaic: 5
+  cache: false
+  workers: 1
+  amp: true
+  save_period: 2                 # a checkpoint every 2 epochs: a crash or a closed lid loses little
+  degrees: 10.0
+  scale: 0.7
+  translate: 0.1
+  fliplr: 0.5
+  flipud: 0.0
+  mosaic: 1.0
+  mixup: 0.1
+  cutmix: 0.1
+  hsv_h: 0.02
+  hsv_s: 0.6
+  hsv_v: 0.4
