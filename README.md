@@ -5,7 +5,8 @@ or forest, including people **lying, crouching or crawling**. Give it a clip; it
 video, per-person tracks with activity labels, and a quality report that says when the footage is outside
 what the model can handle.
 
-![Tracking people in synthetic grass: walking, prone and overlapping people keep their IDs](docs/assets/synthetic_tracking.jpg)
+![A hiker detected and tracked in dense scrub forest from a 4K drone clip](docs/assets/drone_4k_detection.jpg)
+<sub>grass_v1 on a 4K drone clip (stock footage, Pexels): the person is found in tiled-inference mode and labelled `walking`.</sub>
 
 - **Detector:** YOLO26s fine-tuned on a light mix of forest, thermal and drone datasets
   (`grass_v1`, trained on a 4 GB laptop GPU in 3.4 h).
